@@ -11,7 +11,9 @@
 #import "TableViewController.h"
 //&units=metric
 static NSString  *urlWeather = @"http://api.openweathermap.org/data/2.5/weather?lat=50&lon=36.25&units=metric";
-static NSString  *urlForecast = @"http://api.openweathermap.org/data/2.5/forecast?q=kharkiv";
+static NSString  *urlForecast = @"http://api.openweathermap.org/data/2.5/forecast?lat=50&lon=36.25&units=metric";
+//static NSString  *urlForecast = @"http://api.openweathermap.org/data/2.5/forecast?q=kharkiv";
+
 
 @interface ViewController ()
 
@@ -21,6 +23,9 @@ static NSString  *urlForecast = @"http://api.openweathermap.org/data/2.5/forecas
 @property (nonatomic, strong) CLLocationManager *locationManager;
 
 @property (weak, nonatomic) IBOutlet UILabel *tempLabel;
+
+@property (weak, nonatomic) IBOutlet UILabel *cityLabel;
+
 
 @end
 
@@ -54,6 +59,7 @@ static NSString  *urlForecast = @"http://api.openweathermap.org/data/2.5/forecas
             //self.forcast = [self.allWeatherData valueForKey:@"list"];
             NSDictionary *dict = [self.allWeatherData valueForKey:@"main"];
             self.tempLabel.text = [NSString stringWithFormat:@"%@º", [dict valueForKey:@"temp"]];
+            self.cityLabel.text = [self.allWeatherData valueForKey:@"name"];
 //            NSLog(@"Data = %@", self.allWeatherData);
             NSLog(@"Data = %@", dict);
         }
@@ -151,7 +157,12 @@ static NSString  *urlForecast = @"http://api.openweathermap.org/data/2.5/forecas
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view, typically from a nib.
-    self.locationManager = [[CLLocationManager alloc] init];}
+    self.locationManager = [[CLLocationManager alloc] init];
+    self.locationManager.delegate = self;
+    self.locationManager.desiredAccuracy = kCLLocationAccuracyBest;
+    
+    [self.locationManager startUpdatingLocation];
+}
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];

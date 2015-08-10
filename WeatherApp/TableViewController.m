@@ -59,7 +59,11 @@
     
     //cell.textLabel.text = [self.portfolio.holdings[indexPath.row] description];
     NSDictionary * dict = self.forcast[indexPath.row];
-    NSString * cellText = [dict valueForKey:@"dt_txt"];
+    NSDictionary * main = [dict valueForKey:@"main"];
+    NSString * temp = [NSString stringWithFormat:@"%@º", [main valueForKey:@"temp"]];
+    
+    
+    NSString * cellText = [NSString stringWithFormat:@"%@  >>>  %@", [dict valueForKey:@"dt_txt"], temp];
     cell.textLabel.text = cellText;
   
     return cell;
