@@ -11,8 +11,5 @@
 
 @interface ViewController : UIViewController <CLLocationManagerDelegate>
 
-@property (nonatomic, strong) NSString *latitudeLabel;
-@property (nonatomic, strong) NSString *longitudeLabel;
-
 	@end
 

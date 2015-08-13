@@ -36,35 +36,34 @@
 
 #pragma mark - Table view data source
 
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    // Return the number of sections.
-    return 1;
-}
+//- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+//    // Return the number of sections.
+//    return 1;
+//}
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     // Return the number of rows in the section.
-    NSUInteger count = [self.forcast count];
-    return count;
-    //return [self.forcast count];
+    return [self.forcast count];
 }
 
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault
-                           reuseIdentifier:@"UITableViewCell"];
+    UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle
+                           reuseIdentifier:@"Cell Forcast"];
     
     // Set the text on the cell with the description of the item
     // that is at the nth index of items, where n = row this cell
     // will appear in on the tableview
     
-    //cell.textLabel.text = [self.portfolio.holdings[indexPath.row] description];
-    NSDictionary * dict = self.forcast[indexPath.row];
-    NSDictionary * main = [dict valueForKey:@"main"];
-    NSString * temp = [NSString stringWithFormat:@"%@º", [main valueForKey:@"temp"]];
+    NSDictionary *dict = self.forcast[indexPath.row];
+    NSDictionary *main = [dict valueForKey:@"main"];
+    NSString *temp = [NSString stringWithFormat:@"%@ºC", [main valueForKey:@"temp"]];
+    NSArray *weatherTmp = [dict valueForKey:@"weather"];
+    NSDictionary *weather = [weatherTmp firstObject];
+    NSString *clouds = [weather valueForKey:@"description"];
     
-    
-    NSString * cellText = [NSString stringWithFormat:@"%@  >>>  %@", [dict valueForKey:@"dt_txt"], temp];
-    cell.textLabel.text = cellText;
+    cell.textLabel.text = [NSString stringWithFormat:@"%@   -   %@", temp, clouds];
+    cell.detailTextLabel.text = [dict valueForKey:@"dt_txt"];
   
     return cell;
 }

@@ -10,7 +10,8 @@
 #import "ASIHTTPRequest.h"
 #import "TableViewController.h"
 //&units=metric
-static NSString  *urlWeather = @"http://api.openweathermap.org/data/2.5/weather?lat=50&lon=36.25&units=metric";
+//static NSString  *urlWeather = @"http://api.openweathermap.org/data/2.5/weather?lat=50&lon=36.25&units=metric";
+static NSString  *urlWeather = @"http://api.openweathermap.org/data/2.5/weather?q=kharkiv&units=metric";
 static NSString  *urlForecast = @"http://api.openweathermap.org/data/2.5/forecast?lat=50&lon=36.25&units=metric";
 //static NSString  *urlForecast = @"http://api.openweathermap.org/data/2.5/forecast?q=kharkiv";
 
@@ -26,6 +27,7 @@ static NSString  *urlForecast = @"http://api.openweathermap.org/data/2.5/forecas
 
 @property (weak, nonatomic) IBOutlet UILabel *cityLabel;
 
+@property (weak, nonatomic) IBOutlet UIImageView *imageWeather;
 
 @end
 
@@ -58,10 +60,21 @@ static NSString  *urlForecast = @"http://api.openweathermap.org/data/2.5/forecas
             self.allWeatherData = [NSJSONSerialization JSONObjectWithData:result options:0 error:&error];
             //self.forcast = [self.allWeatherData valueForKey:@"list"];
             NSDictionary *dict = [self.allWeatherData valueForKey:@"main"];
-            self.tempLabel.text = [NSString stringWithFormat:@"%@º", [dict valueForKey:@"temp"]];
+            self.tempLabel.text = [NSString stringWithFormat:@"%@ºC", [dict valueForKey:@"temp"]];
             self.cityLabel.text = [self.allWeatherData valueForKey:@"name"];
 //            NSLog(@"Data = %@", self.allWeatherData);
             NSLog(@"Data = %@", dict);
+//            NSArray *weatherTmp = [self.allWeatherData valueForKey:@"weather"];
+//            NSDictionary *weather = [weatherTmp firstObject];
+            //NSArray *weatherTmp = [self.allWeatherData valueForKey:@"weather"];
+            NSDictionary *weather = [[self.allWeatherData valueForKey:@"weather"] firstObject];
+            
+            //NSString *iconID = [weather valueForKey:@"icon"];
+            NSString *urlOfImage = [NSString stringWithFormat:@"http://openweathermap.org/img/w/%@.png",[weather valueForKey:@"icon"]];
+           
+            UIImage *image = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:urlOfImage]]];
+            [self.imageWeather setImage:image];
+
         }
         
     }];
@@ -144,10 +157,10 @@ static NSString  *urlForecast = @"http://api.openweathermap.org/data/2.5/forecas
     
     CLLocation *currentLocation = newLocation;
     
-    if (currentLocation != nil) {
-        _longitudeLabel = [NSString stringWithFormat:@"%.8f", currentLocation.coordinate.longitude];
-        _latitudeLabel = [NSString stringWithFormat:@"%.8f", currentLocation.coordinate.latitude];
-    }
+//    if (currentLocation != nil) {
+//        _longitudeLabel = [NSString stringWithFormat:@"%.8f", currentLocation.coordinate.longitude];
+//        _latitudeLabel = [NSString stringWithFormat:@"%.8f", currentLocation.coordinate.latitude];
+//    }
 
  
 }
