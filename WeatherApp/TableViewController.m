@@ -57,13 +57,14 @@
     
     NSDictionary *dict = self.forcast[indexPath.row];
     NSDictionary *main = [dict valueForKey:@"main"];
-    NSString *temp = [NSString stringWithFormat:@"%@ºC", [main valueForKey:@"temp"]];
+    NSString *temp = [NSString stringWithFormat:@"%dº", [[main valueForKey:@"temp"] intValue]];
     NSArray *weatherTmp = [dict valueForKey:@"weather"];
     NSDictionary *weather = [weatherTmp firstObject];
     NSString *clouds = [weather valueForKey:@"description"];
     
     cell.textLabel.text = [NSString stringWithFormat:@"%@   -   %@", temp, clouds];
-    cell.detailTextLabel.text = [dict valueForKey:@"dt_txt"];
+    NSRange range = NSMakeRange(0, 16);
+    cell.detailTextLabel.text = [[dict valueForKey:@"dt_txt"] substringWithRange: range];
   
     return cell;
 }

@@ -9,11 +9,12 @@
 #import "ViewController.h"
 #import "ASIHTTPRequest.h"
 #import "TableViewController.h"
-//&units=metric
+#import "WeatherView.h"
+
 //static NSString  *urlWeather = @"http://api.openweathermap.org/data/2.5/weather?lat=50&lon=36.25&units=metric";
 static NSString  *urlWeather = @"http://api.openweathermap.org/data/2.5/weather?q=kharkiv&units=metric";
-static NSString  *urlForecast = @"http://api.openweathermap.org/data/2.5/forecast?lat=50&lon=36.25&units=metric";
-//static NSString  *urlForecast = @"http://api.openweathermap.org/data/2.5/forecast?q=kharkiv";
+//static NSString  *urlForecast = @"http://api.openweathermap.org/data/2.5/forecast?lat=50&lon=36.25&units=metric";
+static NSString  *urlForecast = @"http://api.openweathermap.org/data/2.5/forecast?q=kharkiv&units=metric";
 
 
 @interface ViewController ()
@@ -23,66 +24,74 @@ static NSString  *urlForecast = @"http://api.openweathermap.org/data/2.5/forecas
 @property (nonatomic, weak) TableViewController *tableViewController;
 @property (nonatomic, strong) CLLocationManager *locationManager;
 
-@property (weak, nonatomic) IBOutlet UILabel *tempLabel;
-
-@property (weak, nonatomic) IBOutlet UILabel *cityLabel;
+@property (weak, nonatomic) IBOutlet UILabel *lblTemperature;
+@property (weak, nonatomic) IBOutlet UILabel *lblCity;
+@property (weak, nonatomic) IBOutlet UILabel *lblLongitude;
+@property (weak, nonatomic) IBOutlet UILabel *lblLatitude;
+@property (nonatomic) double longitude;
+@property (nonatomic) double latitude;
 
 @property (weak, nonatomic) IBOutlet UIImageView *imageWeather;
+@property (weak, nonatomic) IBOutlet WeatherView *weatherView;
 
 @end
 
 @implementation ViewController
 
 
-- (IBAction)getCurrentLocation:(id)sender {
-    self.locationManager.delegate = self;
-    self.locationManager.desiredAccuracy = kCLLocationAccuracyBest;
-  
-    [self.locationManager startUpdatingLocation];
-}
-
-
 - (IBAction)refresh:(UIButton *)sender {
 
     [self downloadWeather];
     [self downloadForecast];
-    //NSLog(@"asdf: %@", self.forcast);
+    [self.weatherView setNeedsDisplay];
+}
 
+- (NSURL *) composeURLWithType:(ASHURLType) URLType {
+    
+    NSString *urlString;
+    switch(URLType){
+        case ASHURLTypeWeatherCityName  :
+            urlString = urlWeather;
+            break;
+        case ASHURLTypeForecastCityName  :
+            urlString = urlForecast;
+            break;
+        case ASHURLTypeWeatherCoords  :
+            urlString = [NSString stringWithFormat:@"http://api.openweathermap.org/data/2.5/weather?lat=%.2f&lon=%.2f&units=metric", self.latitude, self.longitude];
+            break;
+        case ASHURLTypeForecastCoords  :
+            urlString = [NSString stringWithFormat:@"http://api.openweathermap.org/data/2.5/forecast?lat=%.2f&lon=%.2f&units=metric", self.latitude, self.longitude];
+            break;
+    }
+    return [NSURL URLWithString:urlString];
 }
 
 - (void) downloadWeather {
-
-    [self downloadWeatherDataFromURL:urlWeather withBlock:^(id result) {
+     [self downloadWeatherDataFromURL:[self composeURLWithType:ASHURLTypeWeatherCoords] withBlock:^(id result) {
         if ([result isKindOfClass:[NSError class]]) {
             //
         } else if ([result isKindOfClass:[NSData class]]) {
             NSError *error;
-            self.allWeatherData = [NSJSONSerialization JSONObjectWithData:result options:0 error:&error];
-            //self.forcast = [self.allWeatherData valueForKey:@"list"];
+            self.allWeatherData = [NSJSONSerialization JSONObjectWithData:result
+                                                                  options:0
+                                                                    error:&error];
             NSDictionary *dict = [self.allWeatherData valueForKey:@"main"];
-            self.tempLabel.text = [NSString stringWithFormat:@"%@ºC", [dict valueForKey:@"temp"]];
-            self.cityLabel.text = [self.allWeatherData valueForKey:@"name"];
-//            NSLog(@"Data = %@", self.allWeatherData);
+            self.lblTemperature.text = [NSString stringWithFormat:@"%dº", [[dict valueForKey:@"temp"] intValue]];
+            self.lblCity.text = [self.allWeatherData valueForKey:@"name"];
             NSLog(@"Data = %@", dict);
-//            NSArray *weatherTmp = [self.allWeatherData valueForKey:@"weather"];
-//            NSDictionary *weather = [weatherTmp firstObject];
-            //NSArray *weatherTmp = [self.allWeatherData valueForKey:@"weather"];
             NSDictionary *weather = [[self.allWeatherData valueForKey:@"weather"] firstObject];
             
-            //NSString *iconID = [weather valueForKey:@"icon"];
             NSString *urlOfImage = [NSString stringWithFormat:@"http://openweathermap.org/img/w/%@.png",[weather valueForKey:@"icon"]];
-           
+            
             UIImage *image = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:urlOfImage]]];
             [self.imageWeather setImage:image];
-
         }
-        
     }];
 }
 
 - (void) downloadForecast {
     
-    [self downloadWeatherDataFromURL:urlForecast withBlock:^(id result) {
+    [self downloadWeatherDataFromURL:[self composeURLWithType:ASHURLTypeForecastCityName] withBlock:^(id result) {
         if ([result isKindOfClass:[NSError class]]) {
             //
         } else if ([result isKindOfClass:[NSData class]]) {
@@ -99,8 +108,7 @@ static NSString  *urlForecast = @"http://api.openweathermap.org/data/2.5/forecas
 
 }
 
-- (void)downloadWeatherDataFromURL:(NSString *) urlString withBlock:(void(^)(id result))completion {
-    NSURL *url = [NSURL URLWithString:urlString];
+- (void)downloadWeatherDataFromURL:(NSURL *)url withBlock:(void(^)(id result))completion {
     
     ASIHTTPRequest *request = [[ASIHTTPRequest alloc] initWithURL:url];
     __weak typeof(request) wRequest = request;
@@ -115,11 +123,7 @@ static NSString  *urlForecast = @"http://api.openweathermap.org/data/2.5/forecas
             completion(wRequest.error);
         }
     }];
-    
-//    [request setBytesReceivedBlock:^(unsigned long long size, unsigned long long total) {
-//        NSLog(@"Progress: %llu", size/total);
-//    }];
-    
+
     [request startAsynchronous];
 }
 
@@ -130,7 +134,6 @@ static NSString  *urlForecast = @"http://api.openweathermap.org/data/2.5/forecas
             self.tableViewController = (TableViewController *)segue.destinationViewController;
             self.tableViewController.forcast = self.forcast;
         }
-
     }
 }
 
@@ -145,25 +148,21 @@ static NSString  *urlForecast = @"http://api.openweathermap.org/data/2.5/forecas
     [errorAlert show];
 }
 
-//- (void)locationManager:(CLLocationManager *)manager
-//     didUpdateLocations:(NSArray*)locations {
-//    
-//    NSLog(@"locs^ %@", locations);
-//}
-
-- (void)locationManager:(CLLocationManager *)manager didUpdateToLocation:(CLLocation *)newLocation fromLocation:(CLLocation *)oldLocation
-{
-    //NSLog(@"didUpdateToLocation: %@", newLocation);
+- (void)locationManager:(CLLocationManager *)manager
+     didUpdateLocations:(NSArray*)locations {
     
-    CLLocation *currentLocation = newLocation;
-    
-//    if (currentLocation != nil) {
-//        _longitudeLabel = [NSString stringWithFormat:@"%.8f", currentLocation.coordinate.longitude];
-//        _latitudeLabel = [NSString stringWithFormat:@"%.8f", currentLocation.coordinate.latitude];
-//    }
-
- 
+    CLLocation *currentLocation = [locations lastObject];
+    if (currentLocation != nil) {
+        self.lblLongitude.text = [NSString stringWithFormat:@"%.2f", currentLocation.coordinate.longitude];
+        self.lblLatitude.text = [NSString stringWithFormat:@"%.2f", currentLocation.coordinate.latitude];
+        self.longitude = currentLocation.coordinate.longitude;
+        self.latitude = currentLocation.coordinate.latitude;
+    }
+    NSLog(@"Current loсation is %@", currentLocation);
+    [self downloadWeather];
+    [self downloadForecast];
 }
+
 
 #pragma mark - Lifecycle
 
@@ -172,9 +171,12 @@ static NSString  *urlForecast = @"http://api.openweathermap.org/data/2.5/forecas
     // Do any additional setup after loading the view, typically from a nib.
     self.locationManager = [[CLLocationManager alloc] init];
     self.locationManager.delegate = self;
-    self.locationManager.desiredAccuracy = kCLLocationAccuracyBest;
+    self.locationManager.desiredAccuracy = kCLLocationAccuracyKilometer;
+    self.locationManager.distanceFilter=500;
     
     [self.locationManager startUpdatingLocation];
+    [self downloadWeather];
+    [self downloadForecast];
 }
 
 - (void)didReceiveMemoryWarning {
